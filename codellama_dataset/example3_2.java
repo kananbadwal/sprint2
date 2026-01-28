@@ -31,4 +31,5 @@ public class method6 {
             e.printStackTrace();
         }
     }
+
 }
