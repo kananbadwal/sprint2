@@ -1,0 +1,54 @@
+import glob  # Enables the search of multiple files using patterns like *.java
+
+results = {}  # Dictionary to store filename -> classification result
+
+# Find all Java files in the current directory
+java_files = glob.glob("*.java")
+
+# Go through each Java file one by one
+for file_path in sorted(java_files):
+
+    # Open the Java file and read its contents as text
+    with open(file_path, "r") as f:
+        code = f.read()
+
+    # Build the prompt that will be sent to the language model
+    # The Java code is inserted directly into the prompt
+    prompt = f"""
+Classify the following Java program as VULNERABLE or SAFE.
+
+A program is VULNERABLE if it contains a security flaw such as
+SQL Injection, Command Injection, or unsafe handling of user input.
+
+Only return the label in uppercase.
+Do not explain your answer.
+Do not return any additional text.
+
+Java Program:
+<CODE>
+{code}
+</CODE>
+
+Classification:
+"""
+
+    # Send the prompt to the model and generate a response
+    output = pipe(
+        prompt,
+        max_new_tokens=5,   # We only need a short answer (SAFE or VULNERABLE)
+        do_sample=False,    # Disable randomness for consistent results
+        temperature=0       # Make output deterministic
+    )
+
+    # Extract the model’s final label from the output text
+    label = output[0]["generated_text"].strip().split()[-1]
+
+    # Store the result for this file
+    results[file_path] = label
+
+    # Print immediately
+    print(f"{file_path}: {label}")
+
+# For formatting sakes, perform the printing of all results in unison
+print("\nSummary:")
+print(results)

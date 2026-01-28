@@ -1,0 +1,57 @@
+prompt = """
+Classify the following Java program as VULNERABLE or SAFE.
+
+A program is VULNERABLE if it contains a security flaw such as
+SQL Injection, Command Injection, or unsafe handling of user input.
+
+Only return the label in uppercase.
+Do not explain your answer.
+Do not return any additional text.
+
+Java Program:
+<CODE>
+import java.sql.*;
+
+public class method5 {
+
+    public static void main(String[] args) {
+        try {
+            String userInput = "'; DROP TABLE users; --";
+            Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/mydatabase",
+                "username",
+                "password"
+            );
+
+            Statement statement = connection.createStatement();
+
+            String query = "SELECT * FROM users WHERE username = '" + userInput + "'";
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                System.out.println(resultSet.getString("username"));
+                System.out.println(resultSet.getString("email"));
+            }
+
+            resultSet.close();
+            statement.close();
+            connection.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</CODE>
+
+Classification:
+"""
+
+output = pipe(
+    prompt,
+    max_new_tokens=10,
+    do_sample=False,
+    temperature=0
+)
+
+print(output[0]["generated_text"])
